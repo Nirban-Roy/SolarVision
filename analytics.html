@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SolarVision – Analytics</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- MQTT over WebSocket -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+  <style>
+    /* Increase base font size */
+    html {
+      font-size: 18px; /* Adjust 16–20px as desired */
+    }
+    body {
+      background: linear-gradient(to right, #edf2ff, #f9fcff);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      color: #1f2937;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+    }
+    .dashboard-card {
+      transition: transform 0.3s ease-in-out;
+    }
+    .dashboard-card:hover {
+      transform: scale(1.03);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Collapsible Sidebar -->
+  <aside id="asideNav" class="flex flex-col w-64 bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6">
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold tracking-wide">SolarVision</h1>
+      <p class="text-sm text-gray-200">Team Archineers</p>
+    </div>
+    <nav class="mt-6">
+      <ul class="space-y-4">
+        <li class="opacity-70 hover:opacity-100 transition">
+          <a href="index.html" class="font-medium">Dashboard</a>
+        </li>
+        <li class="opacity-90 hover:opacity-100 transition">
+          <a href="#" class="font-medium">Analytics</a>
+        </li>
+        <li class="opacity-70 hover:opacity-100 transition">
+          <a href="support.html" class="font-medium">Support</a>
+        </li>
+      </ul>
+    </nav>
+    <div class="mt-auto pt-6">
+      <p class="text-sm text-gray-100">© 2025 Team Archineers</p>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col">
+    <!-- Top Bar -->
+    <header class="w-full p-4 bg-white shadow flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <button id="navToggleBtn" class="px-3 py-2 bg-indigo-600 text-white rounded focus:outline-none">
+          Menu
+        </button>
+        <div>
+          <span class="text-lg font-semibold text-indigo-600">Analytics</span>
+          <span class="text-sm text-gray-400">| Voltage Trends</span>
+        </div>
+      </div>
+      <div>
+        <span class="text-gray-500 text-sm">Real-Time Graph</span>
+      </div>
+    </header>
+
+    <!-- Content Section -->
+    <section class="p-6 flex-1 overflow-y-auto">
+      <div class="max-w-7xl mx-auto">
+        <!-- Two charts side-by-side -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <!-- Battery Chart Card -->
+          <div class="bg-white p-4 rounded-md shadow dashboard-card">
+            <h2 class="text-lg font-bold mb-2">Battery Voltage</h2>
+            <div class="h-60 md:h-72">
+              <canvas id="batteryChart"></canvas>
+            </div>
+          </div>
+          <!-- Grid Chart Card -->
+          <div class="bg-white p-4 rounded-md shadow dashboard-card">
+            <h2 class="text-lg font-bold mb-2">Grid Voltage</h2>
+            <div class="h-60 md:h-72">
+              <canvas id="gridChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white p-4 shadow-md">
+      <div class="max-w-7xl mx-auto text-center text-gray-500 text-sm">
+        <p>© 2025 Team Archineers — Empowering Educational Buildings with Smart Solar Solutions</p>
+      </div>
+    </footer>
+  </main>
+
+  <!-- SCRIPTS -->
+  <script>
+    // Collapsible Sidebar Toggle
+    const navToggleBtn = document.getElementById('navToggleBtn');
+    const asideNav = document.getElementById('asideNav');
+    navToggleBtn.addEventListener('click', () => {
+      asideNav.classList.toggle('hidden');
+    });
+
+    // MQTT Setup
+    const client = mqtt.connect('wss://test.mosquitto.org:8081');
+    const VOLTAGE_TOPIC = 'school/voltage'; // e.g., "Battery: 12.5V, Grid: 220.4V"
+
+    // Data arrays
+    const timeLabels = [];
+    const batteryData = [];
+    const gridData = [];
+
+    // On-screen battery chart
+    const batteryCtx = document.getElementById('batteryChart').getContext('2d');
+    const batteryChart = new Chart(batteryCtx, {
+      type: 'line',
+      data: {
+        labels: timeLabels,
+        datasets: [
+          {
+            label: 'Battery (V)',
+            data: batteryData,
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.2,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+
+    // On-screen grid chart
+    const gridCtx = document.getElementById('gridChart').getContext('2d');
+    const gridChart = new Chart(gridCtx, {
+      type: 'line',
+      data: {
+        labels: timeLabels,
+        datasets: [
+          {
+            label: 'Grid (V)',
+            data: gridData,
+            borderColor: 'rgba(255, 159, 64, 1)',
+            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+            tension: 0.2,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+
+    // MQTT Subscription
+    client.on('connect', () => {
+      console.log('Analytics Page: Connected to MQTT broker');
+      client.subscribe(VOLTAGE_TOPIC);
+    });
+
+    client.on('message', (topic, message) => {
+      if (topic === VOLTAGE_TOPIC) {
+        const dataStr = message.toString(); // e.g. "Battery: 12.5V, Grid: 220.4V"
+        const matches = dataStr.match(/\d+(\.\d+)?/g);
+        if (matches && matches.length >= 2) {
+          const [battV, gridV] = matches.map(Number);
+
+          // push new data
+          const now = new Date();
+          const timeLabel = now.toLocaleTimeString();
+          timeLabels.push(timeLabel);
+          batteryData.push(battV);
+          gridData.push(gridV);
+
+          // Limit data arrays to 50 points
+          if (timeLabels.length > 50) {
+            timeLabels.shift();
+            batteryData.shift();
+            gridData.shift();
+          }
+          // Update live charts
+          batteryChart.update();
+          gridChart.update();
+        }
+      }
+    });
+  </script>
+</body>
+</html>

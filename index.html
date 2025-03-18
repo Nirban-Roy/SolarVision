@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SolarVision – Team Archineers</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- MQTT over WebSocket -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+  <style>
+    /* Increase base font size for a more filled look */
+    html {
+      font-size: 18px; /* Adjust 16–20px to your preference */
+    }
+
+    body {
+      background: linear-gradient(to right, #edf2ff, #f9fcff);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      color: #1f2937;
+      min-height: 100vh;
+      display: flex;
+      margin: 0; /* Remove default body margins */
+    }
+
+    /* Hover effect for info cards */
+    .dashboard-card {
+      transition: transform 0.3s ease-in-out;
+    }
+    .dashboard-card:hover {
+      transform: scale(1.03);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Side Navigation Bar / Branding -->
+  <!-- Collapsible for all screen sizes using "Menu" button -->
+  <aside
+    id="asideNav"
+    class="flex flex-col w-64 bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6"
+  >
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold tracking-wide">SolarVision</h1>
+      <p class="text-base text-gray-200">Team Archineers</p>
+    </div>
+    <nav class="mt-6">
+      <ul class="space-y-4">
+        <!-- Updated links to point to actual pages -->
+        <li class="opacity-90 hover:opacity-100 transition">
+          <a href="index.html" class="font-medium">Dashboard</a>
+        </li>
+        <li class="opacity-70 hover:opacity-100 transition">
+          <a href="analytics.html" class="font-medium">Analytics</a>
+        </li>
+        <!-- Removed the Settings page as requested -->
+        <li class="opacity-70 hover:opacity-100 transition">
+          <a href="support.html" class="font-medium">Support</a>
+        </li>
+      </ul>
+    </nav>
+    <div class="mt-auto pt-6">
+      <p class="text-base text-gray-100">© 2025 Team Archineers</p>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col">
+    <!-- Top Bar -->
+    <header class="w-full p-4 bg-white shadow flex items-center justify-between">
+      <!-- Left side with brand text + hamburger for all screen sizes -->
+      <div class="flex items-center space-x-4">
+        <button
+          id="navToggleBtn"
+          class="px-3 py-2 bg-indigo-600 text-white rounded focus:outline-none"
+        >
+          Menu
+        </button>
+        <div>
+          <span class="text-xl font-semibold text-indigo-600">Hello, Team Archineers!</span>
+          <span class="text-base text-gray-400"> | National-Level Solar Project</span>
+        </div>
+      </div>
+      <!-- Right side text info or user menu -->
+      <div>
+        <span class="text-base text-gray-500">Empowering Smart Solar Energy</span>
+      </div>
+    </header>
+
+    <!-- Content Container -->
+    <section class="p-6 flex-1 overflow-y-auto">
+      <div class="max-w-7xl mx-auto">
+        <!-- Relay Toggle Row -->
+        <div class="flex flex-col md:flex-row items-center justify-between mb-8 bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-md shadow">
+          <div>
+            <h2 class="text-2xl font-bold text-green-800">Smart Solar Energy Management</h2>
+            <p class="text-base text-green-600">Seamlessly switch between Grid and Building Requirements</p>
+          </div>
+          <div class="mt-4 md:mt-0">
+            <button
+              id="relayToggleBtn"
+              class="px-6 py-3 rounded-md text-white bg-green-600 hover:bg-green-700 transition text-lg"
+            >
+              Turn ON
+            </button>
+          </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          <!-- Battery Voltage -->
+          <div class="p-6 bg-gradient-to-tr from-green-200 to-green-50 rounded-lg shadow dashboard-card text-center">
+            <h3 class="text-lg font-medium text-green-900 mb-2">Battery Voltage</h3>
+            <p id="batteryVoltage" class="text-3xl font-bold">-- V</p>
+          </div>
+          <!-- Grid Return Voltage -->
+          <div class="p-6 bg-gradient-to-tr from-yellow-200 to-yellow-50 rounded-lg shadow dashboard-card text-center">
+            <h3 class="text-lg font-medium text-yellow-900 mb-2">Grid Return Voltage</h3>
+            <p id="gridVoltage" class="text-3xl font-bold">-- V</p>
+          </div>
+          <!-- Tilt Angle -->
+          <div class="p-6 bg-gradient-to-tr from-blue-200 to-blue-50 rounded-lg shadow dashboard-card text-center">
+            <h3 class="text-lg font-medium text-blue-900 mb-2">Tilt Angle</h3>
+            <p id="tiltAngle" class="text-3xl font-bold">--°</p>
+          </div>
+          <!-- Azimuth Angle -->
+          <div class="p-6 bg-gradient-to-tr from-purple-200 to-purple-50 rounded-lg shadow dashboard-card text-center">
+            <h3 class="text-lg font-medium text-purple-900 mb-2">Azimuth Angle</h3>
+            <p id="azimuthAngle" class="text-3xl font-bold">--°</p>
+          </div>
+        </div>
+
+        <!-- Second Row for the AI-based Card + Cost Saved -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <!-- AI-based "Tracker Adjustment" Card -->
+          <div class="p-6 bg-gradient-to-tr from-sky-200 to-sky-50 rounded-lg shadow dashboard-card text-center">
+            <h3 class="text-lg font-medium text-sky-900 mb-2">AI Tilt Recommendation</h3>
+            
+            <!-- Shows "Analyzing..." initially -->
+            <div id="aiWorkingSection" class="flex items-center justify-center space-x-2 mb-2">
+              <div class="h-6 w-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <p class="text-lg font-semibold">Working...</p>
+            </div>
+
+            <!-- After a delay, show the final text: "Latitude" + "Making adjustments to your tracker" with a spinner beside it -->
+            <div id="aiTrackerAdjustSection" class="hidden">
+              <p class="text-xl font-bold mb-2" id="aiLatitudeValue">Latitude: --</p>
+              
+              <div class="flex items-center justify-center space-x-2">
+                <!-- Spinner next to "making adjustments" -->
+                <div class="h-6 w-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-xl font-bold" id="aiAdjustText">Making adjustments to your tracker</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cost Saved -->
+          <div class="p-6 bg-gradient-to-tr from-pink-200 to-pink-50 rounded-lg shadow dashboard-card text-center">
+            <h3 class="text-lg font-medium text-pink-900 mb-2">Cost Saved</h3>
+            <p id="costSaved" class="text-3xl font-bold">₹0.00</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white p-4 shadow-md">
+      <div class="max-w-7xl mx-auto text-center text-gray-500 text-base">
+        <p>© 2025 Team Archineers — Empowering Educational Buildings with Smart Solar Solutions</p>
+      </div>
+    </footer>
+  </main>
+
+  <!-- MQTT and "AI" Logic -->
+  <script>
+    // =============================================================
+    // Collapsible Nav for all screen sizes
+    // =============================================================
+    const navToggleBtn = document.getElementById('navToggleBtn');
+    const asideNav = document.getElementById('asideNav');
+
+    navToggleBtn.addEventListener('click', () => {
+      asideNav.classList.toggle('hidden');
+    });
+
+    // =============================================================
+    // MQTT Setup
+    // =============================================================
+    const client = mqtt.connect('wss://test.mosquitto.org:8081');
+
+    // Topics from your ESP32 code
+    const VOLTAGE_TOPIC = 'school/voltage'; // e.g. "Battery: 12.5V, Grid: 220.4V"
+    const TILT_TOPIC = 'tilt_angle';       // integer or float angle
+    const AZIMUTH_TOPIC = 'azimuth_angle'; // integer or float angle
+    const RELAY_TOPIC = 'school/relay';    // publish 'GRID' or 'BATTERY'
+
+    // Cost Calculation (approx for Delhi region)
+    const DELHI_GRID_RATE_INR_PER_KWH = 6.0;
+
+    // UI elements
+    const batteryVoltageEl = document.getElementById('batteryVoltage');
+    const gridVoltageEl = document.getElementById('gridVoltage');
+    const tiltAngleEl = document.getElementById('tiltAngle');
+    const azimuthAngleEl = document.getElementById('azimuthAngle');
+    const costSavedEl = document.getElementById('costSaved');
+    const relayToggleBtn = document.getElementById('relayToggleBtn');
+    
+    // "AI" elements
+    const aiWorkingSection = document.getElementById('aiWorkingSection');
+    const aiTrackerAdjustSection = document.getElementById('aiTrackerAdjustSection');
+    const aiLatitudeValueEl = document.getElementById('aiLatitudeValue');
+    const aiAdjustTextEl = document.getElementById('aiAdjustText');
+
+    // Relay State
+    let isRelayOn = false; // false => OFF => (Grid OFF => 0 V?), true => ON => Using Battery?
+
+    // Cost Calculation Variables
+    let lastTime = Date.now();
+    let accumulatedKWH = 0; // total KWH returned
+    let costSaved = 0; // total cost in INR
+
+    // =============================================================
+    // "AI" Logic: Retrieve user location, then "adjust" the tracker
+    // =============================================================
+    let userLatitude = null;
+
+    function getUserLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            userLatitude = position.coords.latitude.toFixed(2);
+            proceedWithAI();
+          },
+          (error) => {
+            console.log('Geolocation denied or error:', error);
+            // fallback to a default latitude (example: Delhi)
+            userLatitude = 28.70;
+            proceedWithAI();
+          }
+        );
+      } else {
+        // No geolocation support
+        userLatitude = 28.70;
+        proceedWithAI();
+      }
+    }
+
+    // Simulate a short analysis, then show "Making adjustments to your tracker" with a spinner
+    function proceedWithAI() {
+      setTimeout(() => {
+        // Hide the initial "Working..." spinner + text
+        aiWorkingSection.classList.add('hidden');
+        // Show the final "Making adjustments" text + spinner
+        aiTrackerAdjustSection.classList.remove('hidden');
+        
+        // Display the user latitude
+        aiLatitudeValueEl.textContent = `Latitude: ${userLatitude}`;
+      }, 2000);
+    }
+
+    // Start the "AI" location process on page load
+    getUserLocation();
+
+    // =============================================================
+    // MQTT Connection and Data Handling
+    // =============================================================
+    client.on('connect', () => {
+      console.log('Connected to MQTT broker');
+      client.subscribe(VOLTAGE_TOPIC);
+      client.subscribe(TILT_TOPIC);
+      client.subscribe(AZIMUTH_TOPIC);
+    });
+
+    client.on('message', (topic, message) => {
+      const data = message.toString();
+
+      if (topic === VOLTAGE_TOPIC) {
+        // Format example: "Battery: 12.5V, Grid: 220.4V"
+        const matches = data.match(/\d+(\.\d+)?/g);
+        if (matches && matches.length >= 2) {
+          let [battV, gridV] = matches;
+
+          // If relay is OFF => set grid return voltage to 0
+          // If relay is ON => show actual grid voltage from MQTT
+          if (!isRelayOn) {
+            gridV = 0;
+          }
+
+          // Update UI
+          batteryVoltageEl.textContent = `${battV} V`;
+          gridVoltageEl.textContent = `${gridV} V`;
+
+          // If grid voltage is returning to grid
+          let numericGridV = parseFloat(gridV);
+          if (numericGridV > 0) {
+            let currentTime = Date.now();
+            let deltaHours = (currentTime - lastTime) / (1000 * 3600);
+            lastTime = currentTime;
+
+            // We'll assume 1 Amp returning => Power = V * I => numericGridV (Watts).
+            // numericGridV / 1000 => kW
+            // Multiply by hours => kWh
+            let kwhReturned = (numericGridV / 1000) * deltaHours;
+            if (kwhReturned < 0) kwhReturned = 0;
+            accumulatedKWH += kwhReturned;
+
+            costSaved = accumulatedKWH * DELHI_GRID_RATE_INR_PER_KWH;
+            costSavedEl.textContent = `₹${costSaved.toFixed(2)}`;
+          } else {
+            // No grid voltage => no increment
+            lastTime = Date.now();
+          }
+        }
+      } else if (topic === TILT_TOPIC) {
+        tiltAngleEl.textContent = `${data}°`;
+      } else if (topic === AZIMUTH_TOPIC) {
+        azimuthAngleEl.textContent = `${data}°`;
+      }
+    });
+
+    // =============================================================
+    // Relay Toggle Button Logic
+    // =============================================================
+    // OFF => "Turn ON" => switch to Battery => publish 'BATTERY'
+    // ON => "Turn OFF" => switch to Grid => publish 'GRID'
+    relayToggleBtn.addEventListener('click', () => {
+      if (isRelayOn) {
+        // Currently ON => switch OFF => Grid OFF => 0 V
+        isRelayOn = false;
+        relayToggleBtn.textContent = 'Turn ON';
+        relayToggleBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+        relayToggleBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+        client.publish(RELAY_TOPIC, 'GRID');
+      } else {
+        // Currently OFF => switch ON => Battery
+        isRelayOn = true;
+        relayToggleBtn.textContent = 'Turn OFF';
+        relayToggleBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+        relayToggleBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+        client.publish(RELAY_TOPIC, 'BATTERY');
+      }
+    });
+  </script>
+</body>
+</html>

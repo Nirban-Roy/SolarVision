@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SolarVision – Support</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Increase base font size for a more filled look */
+    html {
+      font-size: 18px; /* Adjust 16–20px as preferred */
+    }
+
+    body {
+      background: linear-gradient(to right, #edf2ff, #f9fcff);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
+                   "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      color: #1f2937;
+      min-height: 100vh;
+      display: flex;
+      margin: 0; /* Remove default body margins */
+    }
+
+    .fun-emoji {
+      font-size: 1.5rem;
+      margin-right: 0.5rem;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Side Navigation Bar / Branding -->
+  <!-- Collapsible for all screen sizes using the "Menu" button -->
+  <aside
+    id="asideNav"
+    class="flex flex-col w-64 bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6"
+  >
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold tracking-wide">SolarVision</h1>
+      <p class="text-base text-gray-200">Team Archineers</p>
+    </div>
+    <nav class="mt-6">
+      <ul class="space-y-4">
+        <li class="opacity-90 hover:opacity-100 transition">
+          <a href="index.html" class="font-medium">Dashboard</a>
+        </li>
+        <li class="opacity-70 hover:opacity-100 transition">
+          <a href="analytics.html" class="font-medium">Analytics</a>
+        </li>
+        <!-- Removed the Settings link -->
+        <li class="opacity-70 hover:opacity-100 transition">
+          <a href="support.html" class="font-medium">Support</a>
+        </li>
+      </ul>
+    </nav>
+    <div class="mt-auto pt-6">
+      <p class="text-base text-gray-100">© 2025 Team Archineers</p>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col">
+    <!-- Top Bar -->
+    <header class="w-full p-4 bg-white shadow flex items-center justify-between">
+      <!-- Menu button for ALL screen sizes + Title -->
+      <div class="flex items-center space-x-4">
+        <button
+          id="navToggleBtn"
+          class="px-3 py-2 bg-indigo-600 text-white rounded focus:outline-none"
+        >
+          Menu
+        </button>
+        <div>
+          <span class="text-xl font-semibold text-indigo-600">Support</span>
+          <span class="text-base text-gray-400">| The Fun Way 🚀</span>
+        </div>
+      </div>
+      <!-- Right side text info -->
+      <div>
+        <span class="text-base text-gray-500">Need Help? We've Got You!</span>
+      </div>
+    </header>
+
+    <!-- Content Container -->
+    <section class="p-6 flex-1 overflow-y-auto">
+      <div class="max-w-7xl mx-auto bg-white rounded-md shadow p-6">
+        <h2 class="text-2xl font-bold mb-4">
+          Hello from Team Archineers! <span class="fun-emoji">🌞</span>
+        </h2>
+        <p class="mb-4">
+          Welcome to <strong>SolarVision</strong>, your one-stop solution for all things solar and shiny.
+          We're here to guide you (and your solar panels) through any cosmic confusion you might have! 
+          <span class="fun-emoji">✨</span>
+        </p>
+        <p class="mb-4">
+          <strong>What's this website about?</strong> Well, we've basically harnessed the power of the sun (and a pinch of cosmic good vibes) 
+          to build a fancy solar tracking system for educational buildings. <span class="fun-emoji">🏫</span><br/>
+          With the help of our amazing code, you can:
+        </p>
+        <ul class="list-disc ml-8 space-y-2">
+          <li>Peek at your <strong>Battery Voltage</strong> so you know how juiced up you are! <span class="fun-emoji">🔋</span></li>
+          <li>Check the <strong>Grid Return Voltage</strong> to see how much sunshine you're gifting back to the grid! <span class="fun-emoji">⚡</span></li>
+          <li>Monitor the <strong>Tilt &amp; Azimuth Angles</strong> of your solar panels, ensuring they follow the brightest path in the sky. <span class="fun-emoji">🛰️</span></li>
+          <li>Watch <strong>Cost Savings</strong> go up, up, and away—like a rocket fueled by your leftover solar power! <span class="fun-emoji">💸</span></li>
+          <li>Easily switch between <strong>Grid</strong> or <strong>Battery</strong> mode with a single toggle. <span class="fun-emoji">🔌</span></li>
+        </ul>
+        <p class="mt-4 mb-6">
+          All these superpowers are made possible by our snazzy code hooking into <strong>MQTT</strong> topics.
+          <br/>So, all the real-time data you see is plucked right from the cosmos of your hardware! 
+          <span class="fun-emoji">🛸</span>
+        </p>
+
+        <h3 class="text-xl font-bold mb-3">Where to start?</h3>
+        <ul class="list-decimal ml-8 space-y-2">
+          <li><strong>Dashboard</strong>: For your quick glances at the most important metrics. <span class="fun-emoji">📊</span></li>
+          <li><strong>Analytics</strong>: For that in-depth, nerdy look at voltage trends—plus cool PDF reports to impress your friends. <span class="fun-emoji">📈</span></li>
+          <li><strong>Support</strong> (You are here!): Because we love hearing from you, and we love help pages that are actually fun to read. <span class="fun-emoji">🙌</span></li>
+        </ul>
+
+        <p class="mt-6 mb-4">
+          Whether you're an <strong>energy enthusiast</strong>, a <strong>school admin</strong>, 
+          or just a curious cat <span class="fun-emoji">🐱</span>, we hope this website brightens your day 
+          just as much as the sun brightens our planet.
+          <br/>Now go forth and harness that sweet solar goodness! <span class="fun-emoji">☀️</span>
+        </p>
+        <p>
+          If you have any more questions (or want to send us memes <span class="fun-emoji">😜</span>),
+          drop us a message at <strong>support@teamarchineers.io</strong>.
+          <br/><br/>
+          <em>Stay radiant, Team Archineers!</em>
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white p-4 shadow-md">
+      <div class="max-w-7xl mx-auto text-center text-gray-500 text-base">
+        <p>© 2025 Team Archineers — Empowering Educational Buildings with Smart Solar Solutions</p>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    // Collapsible Nav for ALL screen sizes
+    const navToggleBtn = document.getElementById('navToggleBtn');
+    const asideNav = document.getElementById('asideNav');
+
+    navToggleBtn.addEventListener('click', () => {
+      asideNav.classList.toggle('hidden');
+    });
+  </script>
+</body>
+</html>
