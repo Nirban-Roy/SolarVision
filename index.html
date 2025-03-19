@@ -36,7 +36,6 @@
 
 <body>
   <!-- Side Navigation Bar / Branding -->
-  <!-- Collapsible for all screen sizes using "Menu" button -->
   <aside
     id="asideNav"
     class="flex flex-col w-64 bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6"
@@ -97,13 +96,14 @@
             <h2 class="text-2xl font-bold text-green-800">Smart Solar Energy Management</h2>
             <p class="text-base text-green-600">Seamlessly switch between Grid and Building Requirements</p>
           </div>
-          <div class="mt-4 md:mt-0">
-            <button
-              id="relayToggleBtn"
-              class="px-6 py-3 rounded-md text-white bg-green-600 hover:bg-green-700 transition text-lg"
-            >
-              Turn ON
-            </button>
+          <!-- Slider Widget for Relay Toggle -->
+          <div class="mt-4 md:mt-0 flex items-center">
+            <span class="mr-3 text-lg">OFF</span>
+            <label for="relayToggle" class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="relayToggle" class="sr-only peer" />
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-400 rounded-full peer dark:bg-gray-300 peer-checked:bg-green-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+            </label>
+            <span class="ml-3 text-lg">ON</span>
           </div>
         </div>
 
@@ -195,17 +195,16 @@
     const AZIMUTH_TOPIC = 'azimuth_angle'; // integer or float angle
     const RELAY_TOPIC = 'school/relay';    // publish 'GRID' or 'BATTERY'
 
-    // Cost Calculation (approx for Delhi region)
-    const DELHI_GRID_RATE_INR_PER_KWH = 6.0;
-
     // UI elements
     const batteryVoltageEl = document.getElementById('batteryVoltage');
     const gridVoltageEl = document.getElementById('gridVoltage');
     const tiltAngleEl = document.getElementById('tiltAngle');
     const azimuthAngleEl = document.getElementById('azimuthAngle');
     const costSavedEl = document.getElementById('costSaved');
-    const relayToggleBtn = document.getElementById('relayToggleBtn');
-    
+
+    // Slider Toggle
+    const relayToggle = document.getElementById('relayToggle');
+
     // "AI" elements
     const aiWorkingSection = document.getElementById('aiWorkingSection');
     const aiTrackerAdjustSection = document.getElementById('aiTrackerAdjustSection');
@@ -213,11 +212,10 @@
     const aiAdjustTextEl = document.getElementById('aiAdjustText');
 
     // Relay State
-    let isRelayOn = false; // false => OFF => (Grid OFF => 0 V?), true => ON => Using Battery?
+    let isRelayOn = false; // false => OFF => (Using Grid), true => ON => Using Battery
 
     // Cost Calculation Variables
     let lastTime = Date.now();
-    let accumulatedKWH = 0; // total KWH returned
     let costSaved = 0; // total cost in INR
 
     // =============================================================
@@ -281,34 +279,21 @@
         if (matches && matches.length >= 2) {
           let [battV, gridV] = matches;
 
-          // If relay is OFF => set grid return voltage to 0
-          // If relay is ON => show actual grid voltage from MQTT
-          if (!isRelayOn) {
-            gridV = 0;
-          }
-
-          // Update UI
+          // Update UI with actual values from MQTT
           batteryVoltageEl.textContent = `${battV} V`;
           gridVoltageEl.textContent = `${gridV} V`;
 
-          // If grid voltage is returning to grid
+          // Convert to numeric and update cost if gridV > 0
           let numericGridV = parseFloat(gridV);
           if (numericGridV > 0) {
             let currentTime = Date.now();
-            let deltaHours = (currentTime - lastTime) / (1000 * 3600);
+            let deltaMinutes = (currentTime - lastTime) / (1000 * 60);
             lastTime = currentTime;
-
-            // We'll assume 1 Amp returning => Power = V * I => numericGridV (Watts).
-            // numericGridV / 1000 => kW
-            // Multiply by hours => kWh
-            let kwhReturned = (numericGridV / 1000) * deltaHours;
-            if (kwhReturned < 0) kwhReturned = 0;
-            accumulatedKWH += kwhReturned;
-
-            costSaved = accumulatedKWH * DELHI_GRID_RATE_INR_PER_KWH;
+            
+            // Increment cost by 0.1 rupees per minute
+            costSaved += 0.1 * deltaMinutes;
             costSavedEl.textContent = `₹${costSaved.toFixed(2)}`;
           } else {
-            // No grid voltage => no increment
             lastTime = Date.now();
           }
         }
@@ -320,25 +305,15 @@
     });
 
     // =============================================================
-    // Relay Toggle Button Logic
+    // Relay Slider Toggle Logic
     // =============================================================
-    // OFF => "Turn ON" => switch to Battery => publish 'BATTERY'
-    // ON => "Turn OFF" => switch to Grid => publish 'GRID'
-    relayToggleBtn.addEventListener('click', () => {
+    relayToggle.addEventListener('change', () => {
+      isRelayOn = relayToggle.checked;
+      // If isRelayOn => publish 'BATTERY', else => 'GRID'
       if (isRelayOn) {
-        // Currently ON => switch OFF => Grid OFF => 0 V
-        isRelayOn = false;
-        relayToggleBtn.textContent = 'Turn ON';
-        relayToggleBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
-        relayToggleBtn.classList.add('bg-green-600', 'hover:bg-green-700');
-        client.publish(RELAY_TOPIC, 'GRID');
-      } else {
-        // Currently OFF => switch ON => Battery
-        isRelayOn = true;
-        relayToggleBtn.textContent = 'Turn OFF';
-        relayToggleBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
-        relayToggleBtn.classList.add('bg-red-600', 'hover:bg-red-700');
         client.publish(RELAY_TOPIC, 'BATTERY');
+      } else {
+        client.publish(RELAY_TOPIC, 'GRID');
       }
     });
   </script>
